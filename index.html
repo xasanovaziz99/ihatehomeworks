@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+                *{ margin:0; padding:0; box-sizing:border-box; }
+                body{ width:100vw; height:100vh; overflow:hidden; background:#000; }
+
+                #big{
+                        position:absolute; width:100%; top:50%;
+                        transform:translateY(-50%); text-align:center;
+                        font:900 24vw 'Arial Black','Impact',sans-serif;
+                        color:#fff; mix-blend-mode:difference;
+                        z-index:5; pointer-events:none;
+                }
+
+                .pop{
+                        position:absolute; z-index:6; pointer-events:none;
+                        font:900 12vw 'Arial Black','Impact',sans-serif;
+                        white-space:nowrap; translate:-50% -50%;
+                        animation: pop 2.2s ease-out forwards;
+                }
+                @keyframes pop{
+                        0%  { scale:0; opacity:1; }
+                        25% { scale:1.2; opacity:1; }
+                        100%{ scale:1.6; opacity:0; }
+                }
+
+                .shape{
+                        position:absolute; z-index:2;
+                        animation: spin 20s linear infinite;
+                }
+                .round{ border-radius:30%; }
+                .circle{ border-radius:50%; }
+                @keyframes spin{ to{ rotate:360deg; } }
+
+                .ring{
+                        position:absolute; z-index:3; pointer-events:none;
+                        width:30vw; height:30vw;
+                        margin-left:-15vw; margin-top:-15vw;
+                        border-radius:50%; border:1.5vw solid #fff;
+                        animation: wave 1.8s ease-out forwards;
+                }
+                @keyframes wave{
+                        from{ scale:0; opacity:1; }
+                        to{ scale:4; opacity:0; }
+                }
+
+                .wipe{
+                        position:absolute; z-index:1; pointer-events:none;
+                        width:20px; height:20px; margin-left:-10px; margin-top:-10px;
+                        border-radius:50%;
+                        animation: cover 1s ease-in forwards;
+                }
+                @keyframes cover{ to{ scale:400; } }
+
+                #resetBut{
+                        position:fixed; top:16px; right:16px; z-index:10;
+                        font:900 1.3rem 'Arial Black',sans-serif; padding:10px 20px;
+                        background:#fff; color:#000; border:4px solid #fff; cursor:pointer;
+                }
+                #textIn{
+                        position:fixed; left:20px; bottom:16px; z-index:10;
+                        font:900 1.3rem 'Arial Black',sans-serif; padding:10px 16px;
+                        background:#000; color:#fff; border:4px solid #fff;
+                }
+        </style>
+</head>
+<body>
+
+<div id="big">CLICK</div>
+<button id="resetBut">RESET</button>
+<input id="textIn" placeholder="내 글자 쓰고 클릭!" maxlength="10">
+
+<script>
+let sounds = [
+        new Audio("s1.mp3"),
+        new Audio("s2.mp3"),
+        new Audio("s3.mp3"),
+        new Audio("s4.mp3"),
+        new Audio("s5.mp3"),
+        new Audio("s6.mp3"),
+        new Audio("s7.mp3")
+];
+let colors = ["#ff2d2d", "#ff8a00", "#ffe600", "#2dff6a", "#00d5ff", "#3a4bff", "#d12dff", "#ff2d9e"];
+let words = ["과제", "하기", "싫어요", "집", "가고", "싶어요"];
+let n = 0;
+
+function r(min, max){
+        return Math.random() * (max - min) + min;
+}
+
+function makeShapes(){
+        let kinds = ["rect", "round", "circle"];
+        for(i = 0 ; i < 7 ; i++){
+                let s = document.createElement("div");
+                let size = 10 + i * 4;                      
+                s.className = "shape " + kinds[i % 3];
+                s.style.width = size + "vw";
+                s.style.height = size + "vw";
+                s.style.left = r(0, innerWidth * 0.8) + "px";
+                s.style.top = r(0, innerHeight * 0.7) + "px";
+
+                if(i % 2 == 0){
+                        s.style.border = "0.6vw solid #fff";
+                }else{
+                        s.style.background = "#444";
+                }
+                document.body.appendChild(s);
+        }
+}
+makeShapes();
+
+function makeWave(x, y){
+        for(i = 0 ; i < 5 ; i++){
+                let ring = document.createElement("div");
+                ring.className = "ring";
+                ring.style.left = x + "px";
+                ring.style.top = y + "px";
+                ring.style.borderColor = colors[Math.floor(r(0, colors.length))];
+                ring.style.animationDelay = (i * 0.12) + "s";
+                document.body.appendChild(ring);
+                setTimeout(function(){ ring.remove(); }, 2500);
+        }
+}
+
+function makePop(x, y){
+        if(textIn.value == ""){ return; }
+        let p = document.createElement("div");
+        p.className = "pop";
+        p.innerHTML = textIn.value;
+        p.style.left = x + "px";
+        p.style.top = y + "px";
+        p.style.color = colors[Math.floor(r(0, colors.length))];
+        p.style.rotate = r(-15, 15) + "deg";
+        document.body.appendChild(p);
+        setTimeout(function(){ p.remove(); }, 2300);
+}
+
+function shake(){
+        let all = document.querySelectorAll(".shape");
+        for(i = 0 ; i < all.length ; i++){
+                let c = colors[Math.floor(r(0, colors.length))];
+                all[i].style.animationDuration = r(1, 6) + "s";
+                if(all[i].style.background == ""){
+                        all[i].style.borderColor = c;
+                }else{
+                        all[i].style.background = c;
+                }
+        }
+}
+
+function wipe(x, y){
+        let w = document.createElement("div");
+        let c = colors[Math.floor(r(0, colors.length))];
+        w.className = "wipe";
+        w.style.left = x + "px";
+        w.style.top = y + "px";
+        w.style.background = c;
+        document.body.appendChild(w);
+        setTimeout(function(){
+                document.body.style.background = c;
+                w.remove();
+        }, 1000);
+}
+
+document.body.onclick = function(e){
+        if(e.target.id == "resetBut" || e.target.id == "textIn"){ return; }
+        n++;
+
+                let snd = sounds[n % sounds.length];
+        snd.currentTime = 0;
+        snd.play();
+
+        makeWave(e.clientX, e.clientY);
+        makePop(e.clientX, e.clientY);
+        shake();
+        big.innerHTML = words[n % words.length];
+
+        let old = document.body.style.background;
+        document.body.style.background = colors[Math.floor(r(0, colors.length))];
+        setTimeout(function(){ document.body.style.background = old; }, 100);
+
+        if(n % 5 == 0){
+                wipe(e.clientX, e.clientY);
+        }
+};
+
+resetBut.onclick = function(){
+        let all = document.querySelectorAll(".shape");
+        for(i = 0 ; i < all.length ; i++){ all[i].remove(); }
+        n = 0;
+        document.body.style.background = "#000";
+        big.innerHTML = "CLICK";
+        makeShapes();
+};
+</script>
+
+</body>
+</html>
